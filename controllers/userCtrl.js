@@ -37,4 +37,41 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createUser, loginUserCtrl };
+const getAllUsers = asyncHandler(async (req, res) => {
+  try {
+    const getUsers = await User.find().select("-password");
+    res.json(getUsers);
+  } catch (e) {
+    throw new Error(e);
+  }
+});
+
+const getUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(id).select("-password");
+    res.json(user);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await User.findByIdAndDelete(id).select("-password");
+    res.json(deleted);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+module.exports = {
+  createUser,
+  loginUserCtrl,
+  getAllUsers,
+  getUser,
+  deleteUser,
+};
