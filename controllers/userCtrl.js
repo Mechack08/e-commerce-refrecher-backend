@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
+const generateToken = require("../config/jwt");
 
 const createUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
@@ -21,7 +22,13 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
   const findUser = await User.findOne({ email });
   if (findUser) {
     if (await findUser.isPasswordMatched(password)) {
-      res.json(findUser);
+      res.json({
+        firstname: findUser?.firstname,
+        lastname: findUser?.lastname,
+        mobile: findUser?.mobile,
+        email: findUser?.email,
+        token: generateToken(findUser?.id),
+      });
     } else {
       throw new Error("Invalid Creditials");
     }
