@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
+const asyncHandler = require("express-async-handler");
 
-const createUser = async (req, res) => {
+const createUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
 
   // Check if User exist
@@ -10,11 +11,23 @@ const createUser = async (req, res) => {
     const newUser = await User.create(req.body);
     res.json(newUser);
   } else {
-    res.json({
-      msg: "User already exists",
-      success: false,
-    });
+    throw new Error("User Already Exists");
   }
-};
+});
 
-module.exports = { createUser };
+const loginUserCtrl = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  const findUser = await User.findOne({ email });
+  if (findUser) {
+    if (await findUser.isPasswordMatched(password)) {
+      res.json(findUser);
+    } else {
+      throw new Error("Invalid Creditials");
+    }
+  } else {
+    throw new Error("User doesn't exist");
+  }
+});
+
+module.exports = { createUser, loginUserCtrl };
