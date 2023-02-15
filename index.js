@@ -13,6 +13,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 const authRouter = require("./routes/userAth");
+const productRouter = require("./routes/productRoute");
 
 dbConnect();
 
@@ -21,6 +22,7 @@ dbConnect();
 // });
 
 app.use("/api/user", authRouter);
+app.use("/api/product", productRouter);
 
 app.use(notFound);
 app.use(errorHandler);
