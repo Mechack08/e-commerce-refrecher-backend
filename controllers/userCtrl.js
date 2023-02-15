@@ -3,6 +3,8 @@ const asyncHandler = require("express-async-handler");
 const generateToken = require("../config/jwt");
 const validateMongoDbId = require("../utils/validateMongoDbId");
 const generaterefreshToken = require("../config/refreshToken");
+const jwt = require("jsonwebtoken");
+const { json } = require("body-parser");
 
 const createUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
@@ -57,13 +59,42 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 // Handle refresh token
 const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
-  console.log(cookie);
+
   if (!cookie?.refreshToken) throw new Error("No refresh token in cookies");
   const refreshtoken = cookie.refreshToken;
   const user = await User.findOne({ refreshtoken }).select("-password");
   if (!user) throw new Error("No refresh token present in the db");
-  res.json(user);
-  console.log(refreshToken);
+
+  jwt.verify(refreshtoken, process.env.JWT_SECRET, (err, decoded) => {
+    if (err || user._id != decoded.id) {
+      throw new Error("There is something wrong with refresh token =>");
+    }
+    const accessToken = generateToken(user?._id);
+    res.json({ accessToken });
+  });
+});
+
+// Logout user
+const logout = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken) throw new Error("No refresh token in the cookie");
+  const refreshtoken = cookie?.refreshToken;
+  const user = await User.findOne({ refreshtoken });
+  if (!user) {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+    });
+    res.sendStatus(204); // Forbidden
+  }
+  await User.findOneAndUpdate(refreshtoken, {
+    refreshtoken: "",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+  });
+  res.sendStatus(204); // Forbidden
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
@@ -163,4 +194,5 @@ module.exports = {
   blockUser,
   unBlockUser,
   handleRefreshToken,
+  logout,
 };
