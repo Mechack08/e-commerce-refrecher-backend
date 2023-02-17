@@ -25,6 +25,7 @@ var productSchema = new mongoose.Schema(
     quantity: {
       type: Number,
       required: true,
+      default: 0,
     },
     sold: {
       type: Number,
@@ -36,11 +37,11 @@ var productSchema = new mongoose.Schema(
     },
     color: {
       type: String,
-      enum: ["Orange", "Blue", "Black"],
+      required: true,
     },
     brand: {
       type: String,
-      enum: ["Apple", "Samsung", "Hp"],
+      required: true,
     },
     image: {
       type: Array,
